@@ -58,6 +58,6 @@ app.get("/db", async (req, res) => {
 // DÉMARRAGE SERVEUR
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
-  console.log(`API endpoint: http://localhost:${PORT}/api`);
+  console.log(`API principal endpoint: http://localhost:${PORT}/api`);
   console.log(`DB endpoint: http://localhost:${PORT}/db`);
 });
