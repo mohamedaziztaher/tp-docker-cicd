@@ -1,0 +1,48 @@
+version: "3.3"
+
+services:
+  backend:
+    build: ./backend
+    container_name: tp-backend
+    ports:
+      - "3000:3000" # Hôte : Conteneur (Backend accessible sur localhost:3000)
+    networks:
+      - webnet
+    depends_on:
+      - db # Backend dépend de la base de données
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=secret
+      - DB_NAME=mydb
+
+  frontend:
+    build: ./frontend
+    container_name: tp-frontend
+    ports:
+      - "8080:80" # Frontend accessible sur localhost:8080
+    depends_on:
+      - backend
+    networks:
+      - webnet
+
+  db:
+    build: ./database # Build à partir de database/Dockerfile
+    container_name: tp-db
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=mydb
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - webnet
+    ports:
+      - "5432:5432" # Optionnel : accès local à la base
+
+networks:
+  webnet: # Réseau bridge personnalisé pour communication
+
+volumes:
+  db-data: # Volume nommé pour persistance des données
