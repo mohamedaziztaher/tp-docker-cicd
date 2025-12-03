@@ -8,14 +8,15 @@ services:
       - "3000:3000" # Hôte : Conteneur (Backend accessible sur localhost:3000)
     networks:
       - webnet
-    depends_on:
-      - db # Backend dépend de la base de données
     environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=admin
-      - DB_PASSWORD=secret
-      - DB_NAME=mydb
+      # Database connection should be provided via .env file or environment variables
+      # For local development, use external PostgreSQL or Render database
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSL=${DB_SSL:-false}
 
   frontend:
     build: ./frontend
@@ -27,22 +28,5 @@ services:
     networks:
       - webnet
 
-  db:
-    build: ./database # Build à partir de database/Dockerfile
-    container_name: tp-db
-    environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=mydb
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    networks:
-      - webnet
-    ports:
-      - "5432:5432" # Optionnel : accès local à la base
-
 networks:
   webnet: # Réseau bridge personnalisé pour communication
-
-volumes:
-  db-data: # Volume nommé pour persistance des données

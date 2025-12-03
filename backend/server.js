@@ -1,18 +1,53 @@
+require('dotenv').config();
 const express = require("express"); // Framework web
 const cors = require("cors"); // Gestion CORS
 const { Pool } = require("pg"); // Client PostgreSQL
 const app = express();
 const PORT = process.env.PORT || 3000; // Port configurable
 
-
 // Database connection configuration
-const pool = new Pool({
-  host: process.env.DB_HOST || "db",
-  port: process.env.DB_PORT || 5432,
-  user: process.env.DB_USER || "admin",
-  password: process.env.DB_PASSWORD || "secret",
-  database: process.env.DB_NAME || "mydb",
-});
+// Support both DB_URL (connection string) and individual variables
+let poolConfig;
+
+if (process.env.DB_URL) {
+  // Use connection string if provided (e.g., from Render)
+  poolConfig = {
+    connectionString: process.env.DB_URL,
+    ssl: {
+      rejectUnauthorized: false // Required for Render PostgreSQL
+    }
+  };
+} else {
+  // Use individual environment variables
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.DB_HOST?.includes('render.com');
+  poolConfig = {
+    host: process.env.DB_HOST || "localhost",
+    port: parseInt(process.env.DB_PORT || "5432"),
+    user: process.env.DB_USER || "admin",
+    password: process.env.DB_PASSWORD || "secret",
+    database: process.env.DB_NAME || "mydb",
+  };
+
+  // Add SSL configuration for Render PostgreSQL
+  if (isProduction || process.env.DB_SSL === 'true') {
+    poolConfig.ssl = {
+      rejectUnauthorized: false // Required for Render PostgreSQL
+    };
+  }
+}
+
+const pool = new Pool(poolConfig);
+
+// Test database connection
+pool.connect()
+  .then(client => {
+    console.log('Database connected successfully');
+    client.release();
+  })
+  .catch(err => {
+    console.error('Database connection error:', err.message);
+  });
+
 
 // MIDDLEWARE CORS : Autorise les requêtes cross-origin
 app.use(cors({
@@ -20,7 +55,8 @@ app.use(cors({
     'http://localhost:8080', // Frontend via port hôte
     'http://127.0.0.1:8080', // Alternative localhost
     'http://localhost:*', // Tous ports localhost (DEV SEULEMENT)
-    'http://backend' // Nom service Docker (tests internes)
+    'http://backend', // Nom service Docker (tests internes)
+    process.env.FRONTEND_URL || 'https://YOUR_VERCEL_APP.vercel.app' // Vercel frontend
   ],
   methods: ['GET', 'POST', 'OPTIONS'], // Méthodes HTTP autorisées
   allowedHeaders: ['Content-Type'] // Headers autorisés

@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: tp-backend
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        fromDatabase:
+          name: tp-database
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: tp-database
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: tp-database
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: tp-database
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: tp-database
+          property: database
+      - key: DB_SSL
+        value: "true"
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://YOUR_VERCEL_APP.vercel.app
+
+databases:
+  - name: tp-database
+    databaseName: mydb
+    user: admin
+    plan: free
+
