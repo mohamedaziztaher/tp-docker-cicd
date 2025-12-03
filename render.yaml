@@ -32,7 +32,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL
-        value: https://YOUR_VERCEL_APP.vercel.app
+        value: https://tp-docker-cicd-pearl.vercel.app
 
 databases:
   - name: tp-database

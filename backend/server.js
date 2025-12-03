@@ -51,15 +51,39 @@ pool.connect()
 
 // MIDDLEWARE CORS : Autorise les requêtes cross-origin
 app.use(cors({
-  origin: [
-    'http://localhost:8080', // Frontend via port hôte
-    'http://127.0.0.1:8080', // Alternative localhost
-    'http://localhost:*', // Tous ports localhost (DEV SEULEMENT)
-    'http://backend', // Nom service Docker (tests internes)
-    process.env.FRONTEND_URL || 'https://YOUR_VERCEL_APP.vercel.app' // Vercel frontend
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // List of allowed origins
+    const allowedOrigins = [
+      'http://localhost:8080',
+      'http://127.0.0.1:8080',
+      'http://backend',
+      'https://tp-docker-cicd-pearl.vercel.app',
+      process.env.FRONTEND_URL
+    ].filter(Boolean); // Remove undefined values
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Allow localhost on any port for development
+    if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+      return callback(null, true);
+    }
+    
+    // Allow Vercel preview deployments (any .vercel.app subdomain)
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   methods: ['GET', 'POST', 'OPTIONS'], // Méthodes HTTP autorisées
-  allowedHeaders: ['Content-Type'] // Headers autorisés
+  allowedHeaders: ['Content-Type'], // Headers autorisés
+  credentials: true // Allow credentials if needed
 }));
 
 // ROUTE API PRINCIPALE
